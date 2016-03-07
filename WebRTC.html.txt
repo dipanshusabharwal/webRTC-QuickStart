@@ -1,0 +1,181 @@
+<html> 
+
+  <head> WebRTC by Dipanshu </head> 
+  
+  <body>   
+    
+  <div id = "buttonDiv">
+    <button id = 'connectBTN'    onclick = "connect()">             Connect    </button>
+    <button id = 'disconnectBTN' onclick = "disconnect()" disabled> Disconnect </button>
+    <button id = 'publishBTN'    onclick = "publish()"    disabled> Publish    </button>
+    <button id = 'unpublishBTN'  onclick = "unpublish()"  disabled> Unpublish  </button>
+  </div>
+  <div id="myPublisherDiv">  </div>
+  <div id="mySubscriberDiv"> </div>    
+    
+  <script src='//static.opentok.com/v2/js/opentok.min.js'></script> 
+  <script>     
+       
+    var apiKey = '45501942';
+    var sessionId = '1_MX40NTUwMTk0Mn5-MTQ1NjI5NDM2OTE0OX5vdk9zTTVhTDJzVjU5RVNIUUJ5ZEw0SlZ-UH4';
+    var token = 'T1==cGFydG5lcl9pZD00NTUwMTk0MiZzaWc9ZDNhYWQ4Y2I5ZDRiMzBlMzlmN2I4N2YxYzlkN2ZhYzcwZDk2MmZlMjpyb2xlPXB1Ymxpc2hlciZzZXNzaW9uX2lkPTFfTVg0ME5UVXdNVGswTW41LU1UUTFOakk1TkRNMk9URTBPWDV2ZGs5elRUVmhUREp6VmpVNVJWTklVVUo1WkV3MFNsWi1VSDQmY3JlYXRlX3RpbWU9MTQ1NjI5NDM4NiZub25jZT0wLjIyMTU5NDM4NTcwMDg4MTg2JmV4cGlyZV90aW1lPTE0NTg4ODYyMjkmY29ubmVjdGlvbl9kYXRhPWRpcGFuc2h1';
+    var publisher = null;
+    var destroyElement = null;
+    
+    
+    
+    //check system requirements for webRTC
+    if (OT.checkSystemRequirements() == 1) {
+      	//initialize session object
+  		var session = OT.initSession(apiKey, sessionId);
+        console.log("System requirements met successfully");
+	} else {
+ 		console.log("Your system does not meet the adequate system requirements");
+	} 
+
+
+
+    //(re)connect to session
+    function connect() {
+      document.getElementById('connectBTN').disabled    = true;	
+      session.connect(token, function(error) {
+       if (error) {
+         console.log("Error in connecting. Error - "+error.message);
+         document.getElementById('connectBTN').disabled    = false;	
+       } else {
+         console.log("Connecting to session");
+       }});
+    }
+    
+    
+    
+    //disconnect from session
+    function disconnect() {
+      connectionCount--;
+      session.disconnect();
+    }
+
+    
+    
+    //publish to session
+    function publish() { 
+      
+      if (session.capabilities.publish == 1) {
+	  } else {
+        console.log("You do have sufficient publishing capabilities");
+	  }
+      
+      //initialize publisher object
+      publisher = OT.initPublisher('myPublisherDiv', function (error) {
+        if (error) {
+          console.log("Error in initializing publisher. Error - "+error);
+        } else {
+           console.log("Publisher initialized");
+        }}); 
+      
+      session.publish(publisher, function(error) {
+      	if (error) {
+        console.log("Error in publishing. Error - "+error);
+      } else {
+        console.log('Publishing a stream');
+      }});
+      
+      document.getElementById('connectBTN').disabled    = true;	
+      document.getElementById('disconnectBTN').disabled = false;
+      document.getElementById('publishBTN').disabled    = true;
+      document.getElementById('unpublishBTN').disabled  = false;
+    }
+    
+    
+    
+    //unpublish to a session
+    function unpublish() {
+      
+        session.unpublish(publisher);
+      
+        console.log("Now stopped publishing");
+        document.getElementById('connectBTN').disabled    = true;	
+        document.getElementById('disconnectBTN').disabled = false;
+        document.getElementById('publishBTN').disabled    = false;
+        document.getElementById('unpublishBTN').disabled  = true;
+    }
+
+    
+    
+    //on connection to session
+    session.on({sessionConnected: function(event) {
+      console.log("Connected to session");
+      document.getElementById('connectBTN').disabled    = true;	
+      document.getElementById('disconnectBTN').disabled = false;
+      document.getElementById('publishBTN').disabled    = false;
+      document.getElementById('unpublishBTN').disabled  = true;
+    }});
+    
+    
+      
+    //if disconnected from session
+    session.on({sessionDisconnected: function(event) {
+	  console.log("Disconnected from session");    
+      document.getElementById('connectBTN').disabled    = false;	
+      document.getElementById('disconnectBTN').disabled = true;
+      document.getElementById('publishBTN').disabled    = true;
+      document.getElementById('unpublishBTN').disabled  = true; 
+    }});
+        
+    
+    
+    if(publisher != null)
+    {
+       //you have started publishing
+	   publisher.on('streamCreated', function (event) {
+       	 console.log('Started Publishing');
+    	});   
+       
+       //you have stopped publishing
+       publisher.on("streamDestroyed", function (event) {
+         console.log("Stopped Publishing. You Left. Reason - "+event.reason);
+      });  
+    }
+        
+    
+    
+    var connectionCount = 0;
+      
+    //another client has connected or disconnected
+    session.on({
+      //another client connected
+      connectionCreated: function (event) {
+       if (event.connection.connectionId != session.connection.connectionId) {
+         connectionCount++;
+         console.log('Another client connected. ' + connectionCount + ' total.');
+      }},
+        
+      //another client disconnected
+      connectionDestroyed: function connectionDestroyedHandler(event) {
+        connectionCount--;
+        console.log('A client disconnected. ' + connectionCount + ' total.');
+       }
+    });
+    
+
+    
+    //another client publishes and we subscribe
+    session.on("streamCreated", function (event) {
+      var subscriber = session.subscribe(event.stream, 'mySubscriberDiv', {insertMode: 'replace'}); 
+      console.log("Now Subscribing"+ " Stream ID - "+ event.stream.streamId);
+    });
+      
+    //other client stops publishing
+    session.on("streamDestroyed", function (event) {
+      console.log("Other client has stopped publishing");
+      destroyElement = document.getElementById('mySubscriberDiv');
+	  destroyElement.parentNode.removeChild(destroyElement);
+    });
+    
+    
+      
+  </script> 
+    
+  </body> 
+  
+</html>      
