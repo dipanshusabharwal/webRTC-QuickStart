@@ -16,9 +16,9 @@
   <script src='//static.opentok.com/v2/js/opentok.min.js'></script> 
   <script>     
        
-    var apiKey = '45501942';
-    var sessionId = '1_MX40NTUwMTk0Mn5-MTQ1NjI5NDM2OTE0OX5vdk9zTTVhTDJzVjU5RVNIUUJ5ZEw0SlZ-UH4';
-    var token = 'T1==cGFydG5lcl9pZD00NTUwMTk0MiZzaWc9ZDNhYWQ4Y2I5ZDRiMzBlMzlmN2I4N2YxYzlkN2ZhYzcwZDk2MmZlMjpyb2xlPXB1Ymxpc2hlciZzZXNzaW9uX2lkPTFfTVg0ME5UVXdNVGswTW41LU1UUTFOakk1TkRNMk9URTBPWDV2ZGs5elRUVmhUREp6VmpVNVJWTklVVUo1WkV3MFNsWi1VSDQmY3JlYXRlX3RpbWU9MTQ1NjI5NDM4NiZub25jZT0wLjIyMTU5NDM4NTcwMDg4MTg2JmV4cGlyZV90aW1lPTE0NTg4ODYyMjkmY29ubmVjdGlvbl9kYXRhPWRpcGFuc2h1';
+    var apiKey = '';
+    var sessionId = '';
+    var token = '';
     var publisher = null;
     var destroyElement = null;
     
